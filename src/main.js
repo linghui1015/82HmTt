@@ -3,6 +3,23 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 
+import {
+  Button,
+  Cell,
+  CellGroup,
+  NavBar,
+  Field,
+  Toast
+} from 'vant'
+
+Vue
+  .use(Button)
+  .use(Cell)
+  .use(CellGroup)
+  .use(NavBar)
+  .use(Field)
+  .use(Toast)
+
 Vue.config.productionTip = false
 
 new Vue({
