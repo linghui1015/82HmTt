@@ -1,18 +1,67 @@
 <template>
   <div class="login">
+    <!-- 导航栏 -->
     <van-nav-bar title="登录" />
-    <van-cell-group>
-      <van-field v-model="user.mobile" required clearable label="手机号" placeholder="请输入手机号" />
-      <van-field v-model="user.code" type="password" label="密码" placeholder="请输入密码" required />
-    </van-cell-group>
-    <div class="login-btn">
-      <van-button type="info" @click="onLogin">登录</van-button>
+    <!-- /导航栏 -->
+
+    <!--
+      ValidationProvider 是验证插件提供的一个全局组件
+        rules="secret" 配置验证规则
+        v-slot="{ errors }" 获取验证相关的结果参数
+        errors[0] 用来获取验证失败的错误消息
+     -->
+    <!-- <ValidationProvider rules="required|email" name="手机号" v-slot="{ errors }">
+      <input v-model="user.mobile" type="text">
+      <span>{{ errors[0] }}</span>
+    </ValidationProvider> -->
+
+    <!-- 登录表单 -->
+    <!--
+      ValidationObserver 组件会渲染成一个 form 表单
+      可以通过 ref 调用这个组件的方法：validate 来进行 js 验证
+     -->
+
+    <!--
+      为什么这里原来的 van-cell-group 移除，换成了 ValidationObserver
+     -->
+    <ValidationObserver tag="form" ref="loginForm">
+      <!--
+        把需要验证的字段使用 ValidationProvider 包裹起来
+        在其上面配置对应的验证规则等信息
+       -->
+      <ValidationProvider tag="div" name="手机号" rules="required" v-slot="{ errors }">
+        <van-field
+          v-model="user.mobile"
+          required
+          clearable
+          label="手机号"
+          placeholder="请输入手机号"
+          :error-message="errors[0]"
+        />
+      </ValidationProvider>
+      <ValidationProvider tag="div" name="验证码" rules="required" v-slot="{ errors }">
+        <van-field
+          v-model="user.code"
+          type="password"
+          label="验证码"
+          placeholder="请输入验证码"
+          required
+          :error-message="errors[0]"
+        />
+      </ValidationProvider>
+    </ValidationObserver>
+    <!-- /登录表单 -->
+    <!-- 登录按钮 -->
+    <div class="login-wrap">
+      <van-button type="info" :loading="isLoginLoading" @click="onLogin">登录</van-button>
     </div>
+    <!-- /登录按钮 -->
   </div>
 </template>
 
 <script>
 import { login } from '@/api/user'
+// import { truecate } from 'fs'
 // import request from '@/utils/request'
 
 export default {
@@ -22,31 +71,69 @@ export default {
       user: {
         mobile: '13911111111',
         code: '246810'
-      }
+      },
+      isLoginLoading: false // 控制登录按钮的 loading 状态
     }
   },
 
   methods: {
     async onLogin () {
-      // 获取表单数据
+    // this.isLoginLoading = true
+    //   // 获取表单数据
+    //   // 发送请求
+    //   try {
+    //     const { data } = await login(this.user)
+    //     console.log(data)
+    //     this.$toast.success('登录成功')
+    //   } catch (err) {
+    //     if (err.response && err.response.status === 400) {
+    //       this.$toast.fail('登录失败，手机号或验证码错误')
+    //     }
+    //   }
+    //   // 根据结果进行后续处理
+    //   // 无论登陆与否都停止 loading 状态
+    //   this.isLoginLoading = false
+    // }
+    // 获取表单数据
       // 发送请求
       try {
-        const { data } = await login(this.user)
-        console.log(data)
+        // 表单验证
+        const isValid = await this.$refs.loginForm.validate()
+
+        // 验证失败，则什么都不做
+        if (!isValid) {
+          return
+        }
+
+        // 验证通过，提交表单
+        this.isLoginLoading = true
+        const res = await login(this.user)
+
+        this.$store.commit('setUser', res.data.data)
         this.$toast.success('登录成功')
+
+        // 根据路径跳转
+        // this.$router.push('/')
+
+        // 根据名字跳转
+        this.$router.push({
+          name: 'home'
+        })
       } catch (err) {
         if (err.response && err.response.status === 400) {
-          this.$toast.fail('登录失败，手机号或验证码错误')
+          this.$toast.fail('手机号或验证码错误')
         }
       }
-      // 根据结果进行后续处理
+
+      // 无论登录成功与否，都停止 loading
+      this.isLoginLoading = false
     }
   }
 }
 </script>
 <style lang="less" scoped>
 .login {
- .login-btn {
+ .login-wrap {
     padding: 20px;
     .van-button {
       width: 100%;

@@ -5,7 +5,7 @@ import JSONbig from 'json-bigint'
 // 说白了就是复制了一个 axios，拥有和 axios 完全一样的功能，但是配置可以不一样
 // 例如我们可以创建多个请求对象，而不同的请求对象拥有不同的 baseURL
 // 例如我们可以有 a 请求的拦截器，也可以专门定制 b 请求的拦截器
-
+// import store from '@/store'
 const request = axios.create({
   baseURL: 'http://ttapi.research.itcast.cn'
 })
